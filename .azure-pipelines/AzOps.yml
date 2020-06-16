@@ -5,14 +5,32 @@
 
 trigger: none
 
+variables:
+  AzureDevOpsOrg: https://dev.azure.com/matthewwhite
+
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- checkout: self
+  persistCredentials: true
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- task: CmdLine@2
+  displayName: Enable az devops addon
+  inputs:
+    script: |
+      az extension add --name azure-devops
+
+- task: CmdLine@2
+  displayName: az devops login
+  inputs:
+    script: |
+      echo $AZURE_DEVOPS_EXT_PAT | az devops login --organization $(AzureDevOpsOrg)
+  env:
+    AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+
+- task: CmdLine@2
+  displayName: Test list PRs
+  inputs:
+    script: |
+      az repos pr list
