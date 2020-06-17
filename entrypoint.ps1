@@ -28,13 +28,6 @@ function Initialization {
             Connect-AzAccount -TenantId $credentials.tenantId -ServicePrincipal -Credential $credential -SubscriptionId $credentials.subscriptionId -WarningAction SilentlyContinue | Out-Null
             # Configure git
             Start-AzOpsNativeExecution {
-                touch $HOME/.gitconfig
-                echo $INPUT_GITHUB_USERNAME
-                echo $INPUT_GITHUB_EMAIL
-                echo $env:INPUT_GITHUB_USERNAME
-                echo $env:INPUT_GITHUB_EMAIL
-            } | Out-Host
-            Start-AzOpsNativeExecution {
                 git config --global user.email $env:INPUT_GITHUB_EMAIL
                 git config --global user.name $env:INPUT_GITHUB_USERNAME
             } | Out-Host
