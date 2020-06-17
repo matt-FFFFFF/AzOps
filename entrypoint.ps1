@@ -21,6 +21,7 @@ function Initialization {
     begin {
         try {
             # Create [pscredential]
+            Write-Output $env:INPUT_AZURE_CREDENTIALS
             $credentials = ($env:INPUT_AZURE_CREDENTIALS | ConvertFrom-Json)
             $credential = New-Object System.Management.Automation.PSCredential -ArgumentList $credentials.clientId, ($credentials.clientSecret | ConvertTo-SecureString -AsPlainText -Force)
 
