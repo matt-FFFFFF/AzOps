@@ -112,10 +112,53 @@ function Invoke-AzOpsGitPull {
             #endregion
             #region SCMPlatform GitHub
                 "AzureDevOps" {
-                    <#  TODO:
-                        Check if PR exists for branch system into main
-                        Raise PR if not exists
-                    #>
+                    Write-AzOpsLog -Level Information -Topic "rest" -Message "Checking if pull request exists"
+
+                    $params = @{
+                        Uri     = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$($env:SYSTEM_TEAMPROJECTID)/_apis/git/repositories/$($env:BUILD_REPOSITORY_ID)/pullRequests?api-version=5.1"
+                        Method  = "Get"
+                        Headers = @{
+                            "Authorization" = ("Bearer " + $env:SYSTEM_ACCESSTOKEN)
+                            "Content-Type"  = "application/json"
+                        }
+                    }
+                    $response = Invoke-RestMethod @params -Verbose:$VerbosePreference
+
+                    if (!$response) {
+                        Write-AzOpsLog -Level Information -Topic "rest" -Message "Creating new pull request"
+
+                        $params = @{
+                            Uri     = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$($env:SYSTEM_TEAMPROJECTID)/_apis/git/repositories/$($env:BUILD_REPOSITORY_ID)/pullRequests?api-version=5.1"
+                            Method  = "Post"
+                            Headers = @{
+                                "Authorization" = ("Bearer " + $env:SYSTEM_ACCESSTOKEN)
+                                "Content-Type"  = "application/json"
+                            }
+                            Body    = (@{
+                                "sourceRefName" = "refs/heads/system"
+                                "targetRefName" = "refs/heads/main"
+                                "title" = "$env:INPUT_GITHUB_PULL_REQUEST"
+                                "description" = "Auto-generated PR triggered by Azure Resource Manager `nNew or modified resources discovered in Azure"
+                            }  | ConvertTo-Json -Depth 5)
+                        }
+                        $response = Invoke-RestMethod @params -Verbose:$VerbosePreference
+
+                        Write-AzOpsLog -Level Information -Topic "rest" -Message "Assigning pull request label"
+
+                        $params = @{
+                            Uri     = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$($env:SYSTEM_TEAMPROJECTID)/_apis/git/repositories/$($env:BUILD_REPOSITORY_ID)/pullRequests/$($reponse.pullRequestId)/labels?api-version=5.1-preview.1"
+                            Method  = "Post"
+                            Headers = @{
+                                "Authorization" = ("Bearer " + $env:SYSTEM_ACCESSTOKEN)
+                                "Content-Type"  = "application/json"
+                            }
+                            Body    = (@{
+                                "name" = "system"
+                            }  | ConvertTo-Json -Depth 5)
+                        }
+                        Invoke-RestMethod @params -Verbose:$VerbosePreference
+
+                    }
                 }
             #endregion
                 Default {
