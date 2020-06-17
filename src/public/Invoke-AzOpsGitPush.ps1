@@ -34,7 +34,7 @@ function Invoke-AzOpsGitPush {
                                 "body" = "$(Get-Content -Path "$PSScriptRoot/../Comments.md" -Raw) `n Changes: `n`n$output"
                             } | ConvertTo-Json)
                     }
-                    $response = Invoke-RestMethod -Method "POST" -Uri $env:INPUT_GITHUB_COMMENTS @params
+                    Invoke-RestMethod -Method "POST" -Uri $env:INPUT_GITHUB_COMMENTS @params
                     exit 1
                 }
                 "AzureDevOps" {
