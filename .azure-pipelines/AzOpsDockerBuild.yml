@@ -2,12 +2,11 @@ trigger:
   branches:
     include:
       - ADO
+      - master
   paths:
-    include:
-      - 'src/**'
-      - 'Dockerfile'
-      - '**/*.ps1'
-      - '*.ps1'
+    exclude:
+      - "**/*.md"
+      - "**/*.yml"
 
 
 variables:
