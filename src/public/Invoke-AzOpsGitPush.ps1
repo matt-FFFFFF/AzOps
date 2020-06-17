@@ -23,16 +23,31 @@ function Invoke-AzOpsGitPush {
 
             Write-AzOpsLog -Level Information -Topic "rest" -Message "Writing comment to pull request"
             Write-AzOpsLog -Level Verbose -Topic "rest" -Message "Uri: $env:INPUT_GITHUB_COMMENTS"
-            $params = @{
-                Headers = @{
-                    "Authorization" = ("Bearer " + $env:GITHUB_TOKEN )
+
+            switch ($env:INPUT_SCMPLATFORM)
+            {
+                "GitHub" {
+                    $params = @{
+                        Headers = @{
+                            "Authorization" = ("Bearer " + $env:GITHUB_TOKEN )
+                        }
+                        Body    = (@{
+                                "body" = "$(Get-Content -Path "$PSScriptRoot/../Comments.md" -Raw) `n Changes: `n`n$output"
+                            } | ConvertTo-Json)
+                    }
+                    $response = Invoke-RestMethod -Method "POST" -Uri $env:INPUT_GITHUB_COMMENTS @params
+                    exit 1
                 }
-                Body    = (@{
-                        "body" = "$(Get-Content -Path "$PSScriptRoot/../Comments.md" -Raw) `n Changes: `n`n$output"
-                    } | ConvertTo-Json)
+                "AzureDevOps" {
+                    <#
+                        TODO:
+                        Post PR comment
+                    #>
+                }
+                Default {
+                    Write-AzOpsLog -Level Error -Topic "rest" -Message "Could not determine SCM platform from INPUT_SCMPLATFORM. Current value is $env:INPUT_SCMPLATFORM"
+                }
             }
-            $response = Invoke-RestMethod -Method "POST" -Uri $env:INPUT_GITHUB_COMMENTS @params
-            exit 1
         }
         else {
             Write-AzOpsLog -Level Information -Topic "git" -Message "Branch is in sync with Azure"
