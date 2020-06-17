@@ -2,6 +2,11 @@ trigger:
   branches:
     include:
       - ADO
+  paths:
+    include:
+      - 'src/**'
+      - 'Dockerfile'
+      - '**/*.ps1'
 
 
 variables:
