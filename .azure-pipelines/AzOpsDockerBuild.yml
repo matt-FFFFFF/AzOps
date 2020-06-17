@@ -7,6 +7,7 @@ trigger:
       - 'src/**'
       - 'Dockerfile'
       - '**/*.ps1'
+      - '*.ps1'
 
 
 variables:
