@@ -59,50 +59,70 @@ function Invoke-AzOpsGitPull {
                 git push origin system
             } | Out-Null
 
-            Write-AzOpsLog -Level Information -Topic "rest" -Message "Checking if label (system) exists"
-            $params = @{
-                Uri     = ($env:GITHUB_API_URL + "/repos/" + $env:GITHUB_REPOSITORY + "/labels")
-                Headers = @{
-                    "Authorization" = ("Bearer " + $env:GITHUB_TOKEN)
-                }
-            }
-            $response = Invoke-RestMethod -Method "Get" @params | Where-Object -FilterScript { $_.name -like "system" }
-
-            if (!$response) {
-                Write-AzOpsLog -Level Information -Topic "rest" -Message "Creating new label (system)"
-                $params = @{
-                    Uri     = ($env:GITHUB_API_URL + "/repos/" + $env:GITHUB_REPOSITORY + "/labels")
-                    Headers = @{
-                        "Authorization" = ("Bearer " + $env:GITHUB_TOKEN)
-                        "Content-Type"  = "application/json"
+            switch ($env:INPUT_SCMPLATFORM) {
+            #region SCMPlatform GitHub
+                "GitHub" {
+                    Write-AzOpsLog -Level Information -Topic "rest" -Message "Checking if label (system) exists"
+                    $params = @{
+                        Uri     = ($env:GITHUB_API_URL + "/repos/" + $env:GITHUB_REPOSITORY + "/labels")
+                        Headers = @{
+                            "Authorization" = ("Bearer " + $env:GITHUB_TOKEN)
+                        }
                     }
-                    Body    = (@{
-                            "name"        = "system"
-                            "description" = "[AzOps] Do not delete"
-                            "color"       = "db9436"
-                        } | ConvertTo-Json)
+                    $response = Invoke-RestMethod -Method "Get" @params | Where-Object -FilterScript { $_.name -like "system" }
+
+                    if (!$response) {
+                        Write-AzOpsLog -Level Information -Topic "rest" -Message "Creating new label (system)"
+                        $params = @{
+                            Uri     = ($env:GITHUB_API_URL + "/repos/" + $env:GITHUB_REPOSITORY + "/labels")
+                            Headers = @{
+                                "Authorization" = ("Bearer " + $env:GITHUB_TOKEN)
+                                "Content-Type"  = "application/json"
+                            }
+                            Body    = (@{
+                                    "name"        = "system"
+                                    "description" = "[AzOps] Do not delete"
+                                    "color"       = "db9436"
+                                } | ConvertTo-Json)
+                        }
+                        $response = Invoke-RestMethod -Method "Post" @params
+                    }
+
+                    Write-AzOpsLog -Level Information -Topic "rest" -Message "Checking if pull request exists"
+            
+
+                    $params = @{
+                        Uri     = ($env:GITHUB_API_URL + "/repos/" + $env:GITHUB_REPOSITORY + ("/pulls?state=open&head=") + $env:GITHUB_REPOSITORY + ":system")
+                        Headers = @{
+                            "Authorization" = ("Bearer " + $env:GITHUB_TOKEN)
+                        }
+                    }
+                    $response = Invoke-RestMethod -Method "Get" @params
+        
+                    if (!$response) {
+                        Write-AzOpsLog -Level Information -Topic "gh" -Message "Creating new pull request"
+                        Start-AzOpsNativeExecution {
+                            gh pr create --title $env:INPUT_GITHUB_PULL_REQUEST --body "Auto-generated PR triggered by Azure Resource Manager `nNew or modified resources discovered in Azure" --label "system"
+                        } | Out-Host
+                    }
+                    else {
+                        Write-AzOpsLog -Level Information -Topic "gh" -Message "Skipping pull request creation"
+                    }
                 }
-                $response = Invoke-RestMethod -Method "Post" @params
+            #endregion
+            #region SCMPlatform GitHub
+                "AzureDevOps" {
+                    <#  TODO:
+                        Check if PR exists for branch system into main
+                        Raise PR if not exists
+                    #>
+                }
+            #endregion
+                Default {
+                    Write-AzOpsLog -Level Error -Topic "rest" -Message "Could not determine SCM platform from INPUT_SCMPLATFORM. Current value is $env:INPUT_SCMPLATFORM"
+                }
             }
 
-            Write-AzOpsLog -Level Information -Topic "rest" -Message "Checking if pull request exists"
-            $params = @{
-                Uri     = ($env:GITHUB_API_URL + "/repos/" + $env:GITHUB_REPOSITORY + ("/pulls?state=open&head=") + $env:GITHUB_REPOSITORY + ":system")
-                Headers = @{
-                    "Authorization" = ("Bearer " + $env:GITHUB_TOKEN)
-                }
-            }
-            $response = Invoke-RestMethod -Method "Get" @params
-
-            if (!$response) {
-                Write-AzOpsLog -Level Information -Topic "gh" -Message "Creating new pull request"
-                Start-AzOpsNativeExecution {
-                    gh pr create --title $env:INPUT_GITHUB_PULL_REQUEST --body "Auto-generated PR triggered by Azure Resource Manager `nNew or modified resources discovered in Azure" --label "system"
-                } | Out-Host
-            }
-            else {
-                Write-AzOpsLog -Level Information -Topic "gh" -Message "Skipping pull request creation"
-            }
         }
     }
 
