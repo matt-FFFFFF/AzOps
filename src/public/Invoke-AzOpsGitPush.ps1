@@ -22,11 +22,10 @@ function Invoke-AzOpsGitPush {
             }
 
             Write-AzOpsLog -Level Information -Topic "rest" -Message "Writing comment to pull request"
-            Write-AzOpsLog -Level Verbose -Topic "rest" -Message "Uri: $env:INPUT_GITHUB_COMMENTS"
 
-            switch ($env:INPUT_SCMPLATFORM)
-            {
+            switch ($env:INPUT_SCMPLATFORM) {
                 "GitHub" {
+                    Write-AzOpsLog -Level Verbose -Topic "rest" -Message "Uri: $env:INPUT_GITHUB_COMMENTS"
                     $params = @{
                         Headers = @{
                             "Authorization" = ("Bearer " + $env:GITHUB_TOKEN )
@@ -39,10 +38,26 @@ function Invoke-AzOpsGitPush {
                     exit 1
                 }
                 "AzureDevOps" {
-                    <#
-                        TODO:
-                        Post PR comment
-                    #>
+                    Write-AzOpsLog -Level Verbose -Topic "rest" -Message "Uri: $env:INPUT_ADO_COMMENTS"
+                    $params = @{
+                        Uri     = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$($env:SYSTEM_TEAMPROJECTID)/_apis/git/repositories/$($env:BUILD_REPOSITORY_ID)/pullRequests/$($env:SYSTEM_PULLREQUEST_PULLREQUESTID)/threads?api-version=5.1"
+                        Method  = "Post"
+                        Headers = @{
+                            "Authorization" = ("Bearer " + $env:SYSTEM_ACCESSTOKEN)
+                            "Content-Type"  = "application/json"
+                        }
+                        Body    = (@{
+                                comments = @(
+                                    (@{
+                                            "parentCommentId" = 0
+                                            "content"         = "$(Get-Content -Path "$PSScriptRoot/../Comments.md" -Raw)"
+                                            "commentType"     = 1
+                                        })
+                                )
+                            }  | ConvertTo-Json -Depth 5)
+                    }
+                    Invoke-RestMethod @params -Verbose:$VerbosePreference
+                    exit 1
                 }
                 Default {
                     Write-AzOpsLog -Level Error -Topic "rest" -Message "Could not determine SCM platform from INPUT_SCMPLATFORM. Current value is $env:INPUT_SCMPLATFORM"
