@@ -125,9 +125,9 @@ function Invoke-AzOpsGitPull {
                     Write-AzOpsLog -Level Verbose -Topic "rest" -Message "URI: $($params.Uri)"
                     $response = Invoke-RestMethod @params -Verbose:$VerbosePreference
                     Write-AzOpsLog -Level Verbose -Topic "rest" -Message "Response: $response"
-                    Write-AzOpsLog -Level Verbose -Topic "naughty" -Message "REMOVE THIS: $env:SYSTEM_ACCESSTOLEN"
-                    
-                    if (!$response) {
+                    Write-AzOpsLog -Level Verbose -Topic "naughty" -Message "REMOVE THIS: $env:SYSTEM_ACCESSTOKEN"
+
+                    if ($response.count -eq 0) {
                         Write-AzOpsLog -Level Information -Topic "rest" -Message "Creating new pull request"
 
                         $params = @{
