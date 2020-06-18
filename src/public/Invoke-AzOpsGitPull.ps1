@@ -21,7 +21,7 @@ function Invoke-AzOpsGitPull {
             Write-AzOpsLog -Level Information -Topic "git" -Message "Checking out existing branch (system)"
             Start-AzOpsNativeExecution {
                 git checkout system
-                git merge origin/main --strategy-option theirs --allow-unrelated-histories
+                git reset --hard origin/main
             } | Out-Host
         }
         else {
