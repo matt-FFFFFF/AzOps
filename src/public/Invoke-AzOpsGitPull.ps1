@@ -115,7 +115,7 @@ function Invoke-AzOpsGitPull {
                     Write-AzOpsLog -Level Information -Topic "rest" -Message "Checking if pull request exists"
 
                     $params = @{
-                        Uri     = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$($env:SYSTEM_TEAMPROJECTID)/_apis/git/repositories/$($env:BUILD_REPOSITORY_ID)/pullRequests?searchCriteria.sourceRefName=refs/heads/system&searchCriteria.targetRefName=refs/heads/main&api-version=5.1"
+                        Uri     = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$($env:SYSTEM_TEAMPROJECTID)/_apis/git/repositories/$($env:BUILD_REPOSITORY_ID)/pullRequests?searchCriteria.sourceRefName=refs/heads/system&searchCriteria.targetRefName=refs/heads/main&searchCriteria.status=active&api-version=5.1"
                         Method  = "Get"
                         Headers = @{
                             "Authorization" = ("Bearer " + $env:SYSTEM_ACCESSTOKEN)
@@ -124,8 +124,7 @@ function Invoke-AzOpsGitPull {
                     }
                     Write-AzOpsLog -Level Verbose -Topic "rest" -Message "URI: $($params.Uri)"
                     $response = Invoke-RestMethod @params -Verbose:$VerbosePreference
-                    Write-AzOpsLog -Level Verbose -Topic "rest" -Message "Response: $response"
-                    Write-AzOpsLog -Level Verbose -Topic "naughty" -Message "REMOVE THIS: $env:SYSTEM_ACCESSTOKEN"
+                    Write-AzOpsLog -Level Verbose -Topic "rest" -Message "Pull request response count: $($response.count)"
 
                     if ($response.count -eq 0) {
                         Write-AzOpsLog -Level Information -Topic "rest" -Message "Creating new pull request"
@@ -149,7 +148,7 @@ function Invoke-AzOpsGitPull {
                         Write-AzOpsLog -Level Information -Topic "rest" -Message "Assigning pull request label"
 
                         $params = @{
-                            Uri     = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$($env:SYSTEM_TEAMPROJECTID)/_apis/git/repositories/$($env:BUILD_REPOSITORY_ID)/pullRequests/$($reponse.pullRequestId)/labels?api-version=5.1-preview.1"
+                            Uri     = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$($env:SYSTEM_TEAMPROJECTID)/_apis/git/repositories/$($env:BUILD_REPOSITORY_ID)/pullRequests/$($response.pullRequestId)/labels?api-version=5.1-preview.1"
                             Method  = "Post"
                             Headers = @{
                                 "Authorization" = ("Bearer " + $env:SYSTEM_ACCESSTOKEN)
@@ -160,7 +159,6 @@ function Invoke-AzOpsGitPull {
                             }  | ConvertTo-Json -Depth 5)
                         }
                         Invoke-RestMethod @params -Verbose:$VerbosePreference
-
                     }
                 }
             #endregion
