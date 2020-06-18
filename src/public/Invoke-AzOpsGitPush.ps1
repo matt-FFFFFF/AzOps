@@ -50,7 +50,7 @@ function Invoke-AzOpsGitPush {
                                 comments = @(
                                     (@{
                                             "parentCommentId" = 0
-                                            "content"         = "$(Get-Content -Path "$PSScriptRoot/../Comments.md" -Raw)"
+                                            "content"         = "$(Get-Content -Path "$PSScriptRoot/../Comments-ado.md" -Raw)"
                                             "commentType"     = 1
                                         })
                                 )
