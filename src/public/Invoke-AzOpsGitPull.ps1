@@ -115,7 +115,7 @@ function Invoke-AzOpsGitPull {
                     Write-AzOpsLog -Level Information -Topic "rest" -Message "Checking if pull request exists"
 
                     $params = @{
-                        Uri     = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$($env:SYSTEM_TEAMPROJECTID)/_apis/git/repositories/$($env:BUILD_REPOSITORY_ID)/pullRequests?api-version=5.1"
+                        Uri     = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$($env:SYSTEM_TEAMPROJECTID)/_apis/git/repositories/$($env:BUILD_REPOSITORY_ID)/pullRequests?searchCriteria.sourceRefName=refs/heads/system&searchCriteria.targetRefName=refs/heads/main&api-version=5.1"
                         Method  = "Get"
                         Headers = @{
                             "Authorization" = ("Bearer " + $env:SYSTEM_ACCESSTOKEN)
