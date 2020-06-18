@@ -1,16 +1,15 @@
 trigger:
   branches:
     include:
-      - ADO
       - master
   paths:
     exclude:
       - "**/*.md"
       - "**/*.yml"
 
-
 variables:
   ContainerRegistry: AzOpsRegistry
+  ContainerTag: stable
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -39,7 +38,7 @@ steps:
     repository: mattffffff/AzOpsADO
     tags: |
       $(Build.BuildId)
-      v0.0.1
+      $(ContainerTag)
 
 - task: Docker@2
   displayName: Docker logout
