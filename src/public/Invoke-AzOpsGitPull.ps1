@@ -56,7 +56,7 @@ function Invoke-AzOpsGitPull {
 
             Write-AzOpsLog -Level Information -Topic "git" -Message "Pushing new changes to origin"
             Start-AzOpsNativeExecution {
-                git push origin system
+                git push --force origin system
             } | Out-Null
 
             switch ($env:INPUT_SCMPLATFORM) {
