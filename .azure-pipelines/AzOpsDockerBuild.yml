@@ -10,6 +10,8 @@ trigger:
 variables:
   ContainerRegistry: AzOpsRegistry
   ContainerTag: stable
+  ContainerRepository: mattffffff/azopsado
+  DockerVersion: '19.03.11'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -20,7 +22,7 @@ steps:
 - task: DockerInstaller@0
   displayName: Install Docker
   inputs:
-    dockerVersion: '19.03.11'
+    dockerVersion: $(DockerVersion)
     releaseType: stable
 
 - task: Docker@2
@@ -35,13 +37,14 @@ steps:
     command: buildAndPush
     containerRegistry: $(ContainerRegistry)
     Dockerfile: ./Dockerfile
-    repository: mattffffff/AzOpsADO
+    repository: $(ContainerRepository)
     tags: |
       $(Build.BuildId)
       $(ContainerTag)
 
 - task: Docker@2
   displayName: Docker logout
+  condition: true
   inputs:
     command: logout
     containerRegistry: $(ContainerRegistry)
