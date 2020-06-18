@@ -122,7 +122,9 @@ function Invoke-AzOpsGitPull {
                             "Content-Type"  = "application/json"
                         }
                     }
+                    Write-AzOpsLog -Level Verbose -Topic "rest" -Message "URI: $($params.Uri)"
                     $response = Invoke-RestMethod @params -Verbose:$VerbosePreference
+                    Write-AzOpsLog -Level Verbose -Topic "rest" -Message "Response: $response"
 
                     if (!$response) {
                         Write-AzOpsLog -Level Information -Topic "rest" -Message "Creating new pull request"
