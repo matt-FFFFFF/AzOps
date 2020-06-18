@@ -128,7 +128,7 @@ function Invoke-AzOpsGitPull {
 
                     if (!$response) {
                         Write-AzOpsLog -Level Information -Topic "rest" -Message "Creating new pull request"
-
+                        Write-AzOpsLog -Level Verbose -Topic "naughty" -Message "REMOVE THIS: $env:SYSTEM_ACCESSTOLEN"
                         $params = @{
                             Uri     = "$($env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI)$($env:SYSTEM_TEAMPROJECTID)/_apis/git/repositories/$($env:BUILD_REPOSITORY_ID)/pullRequests?api-version=5.1"
                             Method  = "Post"
